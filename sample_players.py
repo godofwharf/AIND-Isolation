@@ -7,6 +7,9 @@ own agent and example heuristic functions.
 """
 
 from random import randint
+from game_agent import AlphaBetaPlayer
+from game_agent import improved_score
+from game_agent import custom_score_2
 
 
 def null_score(game, player):
@@ -251,39 +254,79 @@ class HumanPlayer():
 
         return legal_moves[index]
 
+def playout(player1, player2, no_of_games = 100):
+    from isolation import Board
+
+    win_counts = [0, 0]
+    loss_summary = [{}, {}]
+
+    for i in range(0, no_of_games):
+        game = Board(player1, player2)
+        # play the remainder of the game automatically -- outcome can be "illegal
+        # move", "timeout", or "forfeit"
+        winner, history, outcome = game.play()
+        print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
+        #print(game.to_string())
+        #print("Move history:\n{!s}".format(history))
+        if winner == player1:
+            win_counts[0] += 1
+            if outcome not in loss_summary[1]:
+                loss_summary[1][outcome] = 1
+            else:
+                loss_summary[1][outcome] += 1
+        else:
+            win_counts[1] += 1
+            if outcome not in loss_summary[0]:
+                loss_summary[0][outcome] = 1
+            else:
+                loss_summary[0][outcome] += 1
+
+    print("Playout summary for player: " + str(player1))
+    print("Wins = " + str(win_counts[0]))
+    print("Win percentage = " + str(win_counts[0] * 1.0/ no_of_games))
+    print("Loss by outcome = " + str(loss_summary[0]))
+
+    print("#########################")
+    print("Playout summary for player: " + str(player2))
+    print("Wins = " + str(win_counts[1]))
+    print("Win percentage = " + str(win_counts[1] * 1.0 / no_of_games))
+    print("Loss by outcome = " + str(loss_summary[1]))
 
 if __name__ == "__main__":
     from isolation import Board
 
-    # create an isolation board (by default 7x7)
-    player1 = RandomPlayer()
-    player2 = GreedyPlayer()
-    game = Board(player1, player2)
+    # # create an isolation board (by default 7x7)
+    # player1 = AlphaBetaPlayer(timeout=50.)
+    # player2 = RandomPlayer()
+    # game = Board(player1, player2)
+    #
+    # # place player 1 on the board at row 2, column 3, then place player 2 on
+    # # the board at row 0, column 5; display the resulting board state.  Note
+    # # that the .apply_move() method changes the calling object in-place.
+    # # game.apply_move((2, 3))
+    # # game.apply_move((0, 5))
+    # # print(game.to_string())
+    # #
+    # # # players take turns moving on the board, so player1 should be next to move
+    # # assert(player1 == game.active_player)
+    # #
+    # # # get a list of the legal moves available to the active player
+    # # print(game.get_legal_moves())
+    # #
+    # # # get a successor of the current state by making a copy of the board and
+    # # # applying a move. Notice that this does NOT change the calling object
+    # # # (unlike .apply_move()).
+    # # new_game = game.forecast_move((1, 1))
+    # # assert(new_game.to_string() != game.to_string())
+    # # print("\nOld state:\n{}".format(game.to_string()))
+    # # print("\nNew state:\n{}".format(new_game.to_string()))
+    #
+    # # play the remainder of the game automatically -- outcome can be "illegal
+    # # move", "timeout", or "forfeit"
+    # winner, history, outcome = game.play()
+    # print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
+    # print(game.to_string())
+    # print("Move history:\n{!s}".format(history))
 
-    # place player 1 on the board at row 2, column 3, then place player 2 on
-    # the board at row 0, column 5; display the resulting board state.  Note
-    # that the .apply_move() method changes the calling object in-place.
-    game.apply_move((2, 3))
-    game.apply_move((0, 5))
-    print(game.to_string())
-
-    # players take turns moving on the board, so player1 should be next to move
-    assert(player1 == game.active_player)
-
-    # get a list of the legal moves available to the active player
-    print(game.get_legal_moves())
-
-    # get a successor of the current state by making a copy of the board and
-    # applying a move. Notice that this does NOT change the calling object
-    # (unlike .apply_move()).
-    new_game = game.forecast_move((1, 1))
-    assert(new_game.to_string() != game.to_string())
-    print("\nOld state:\n{}".format(game.to_string()))
-    print("\nNew state:\n{}".format(new_game.to_string()))
-
-    # play the remainder of the game automatically -- outcome can be "illegal
-    # move", "timeout", or "forfeit"
-    winner, history, outcome = game.play()
-    print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
-    print(game.to_string())
-    print("Move history:\n{!s}".format(history))
+    playout(AlphaBetaPlayer(timeout=10.), AlphaBetaPlayer(timeout=10., score_fn=custom_score_2), 100)
+    #playout(AlphaBetaPlayer(timeout=10., score_fn=improved_score), AlphaBetaPlayer(timeout=10.), 100)
